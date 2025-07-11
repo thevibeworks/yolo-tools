@@ -8,6 +8,12 @@ Collection of utility scripts and tools.
 # Install latest version
 curl -sSL https://raw.githubusercontent.com/thevibeworks/yolo-tools/main/install.sh | bash
 
+```
+
+### Advanced Usage
+
+```bash
+
 # Install specific version
 curl -sSL https://raw.githubusercontent.com/thevibeworks/yolo-tools/main/install.sh | bash -s -- -v v0.1.0
 
@@ -30,7 +36,7 @@ curl -sSL https://raw.githubusercontent.com/thevibeworks/yolo-tools/main/install
 export BARK_KEY="your_device_key"
 export BARK_SERVER="your_bark_server" # or use the official default: "https://api.day.app"
 
-# Send notification  
+# Send notification
 barkme.sh "Hello World"
 ```
 

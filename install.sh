@@ -131,42 +131,50 @@ fi
 
 # Interactive tool selection
 if [[ "$INTERACTIVE" == "true" ]]; then
-    echo "Available tools:"
-    for i in "${!AVAILABLE_TOOLS[@]}"; do
-        echo "$((i + 1)). ${AVAILABLE_TOOLS[$i]}"
-    done
-    echo "a. Install all"
-    echo
+    # Check if stdin is available (not piped)
+    if [[ -t 0 ]]; then
+        echo "Available tools:"
+        for i in "${!AVAILABLE_TOOLS[@]}"; do
+            echo "$((i + 1)). ${AVAILABLE_TOOLS[$i]}"
+        done
+        echo "a. Install all"
+        echo
 
-    while true; do
-        read -p "Select tools to install (1-${#AVAILABLE_TOOLS[@]}, a for all, or comma-separated): " selection
+        while true; do
+            read -p "Select tools to install (1-${#AVAILABLE_TOOLS[@]}, a for all, or comma-separated): " selection
 
-        if [[ "$selection" == "a" ]]; then
-            TOOLS_TO_INSTALL=("${AVAILABLE_TOOLS[@]}")
-            break
-        elif [[ "$selection" =~ ^[0-9,]+$ ]]; then
-            IFS=',' read -ra INDICES <<<"$selection"
-            TOOLS_TO_INSTALL=()
-            valid=true
+            if [[ "$selection" == "a" ]]; then
+                TOOLS_TO_INSTALL=("${AVAILABLE_TOOLS[@]}")
+                break
+            elif [[ "$selection" =~ ^[0-9,]+$ ]]; then
+                IFS=',' read -ra INDICES <<<"$selection"
+                TOOLS_TO_INSTALL=()
+                valid=true
 
-            for idx in "${INDICES[@]}"; do
-                idx=$((idx - 1))
-                if [[ $idx -ge 0 && $idx -lt ${#AVAILABLE_TOOLS[@]} ]]; then
-                    TOOLS_TO_INSTALL+=("${AVAILABLE_TOOLS[$idx]}")
-                else
-                    echo "Invalid selection: $((idx + 1))"
-                    valid=false
+                for idx in "${INDICES[@]}"; do
+                    idx=$((idx - 1))
+                    if [[ $idx -ge 0 && $idx -lt ${#AVAILABLE_TOOLS[@]} ]]; then
+                        TOOLS_TO_INSTALL+=("${AVAILABLE_TOOLS[$idx]}")
+                    else
+                        echo "Invalid selection: $((idx + 1))"
+                        valid=false
+                        break
+                    fi
+                done
+
+                if [[ "$valid" == "true" ]]; then
                     break
                 fi
-            done
-
-            if [[ "$valid" == "true" ]]; then
-                break
+            else
+                echo "Invalid input. Use numbers, comma-separated numbers, or 'a' for all."
             fi
-        else
-            echo "Invalid input. Use numbers, comma-separated numbers, or 'a' for all."
-        fi
-    done
+        done
+    else
+        # Piped execution - install all tools
+        echo "Piped execution detected. Installing all tools."
+        echo "Use 'curl ... | bash -s -- --help' to see options."
+        TOOLS_TO_INSTALL=("${AVAILABLE_TOOLS[@]}")
+    fi
 else
     TOOLS_TO_INSTALL=("${AVAILABLE_TOOLS[@]}")
 fi

@@ -4,21 +4,28 @@ Collection of utility scripts and tools.
 
 ## Install
 
-```bash
-# Install latest version
-curl -sSL https://raw.githubusercontent.com/thevibeworks/yolo-tools/main/install.sh | bash
+### Interactive install (recommended)
 
+```bash
+# Interactive tool selection
+bash <(curl -fsSL https://raw.githubusercontent.com/thevibeworks/yolo-tools/main/install.sh)
 ```
 
-### Advanced Usage
-
 ```bash
+# Force reinstall with interaction
+bash <(curl -fsSL https://raw.githubusercontent.com/thevibeworks/yolo-tools/main/install.sh) --force
 
 # Install specific version
-curl -sSL https://raw.githubusercontent.com/thevibeworks/yolo-tools/main/install.sh | bash -s -- -v v0.1.0
+bash <(curl -fsSL https://raw.githubusercontent.com/thevibeworks/yolo-tools/main/install.sh) -v v1.0.0
+```
 
-# Install all tools non-interactively
-curl -sSL https://raw.githubusercontent.com/thevibeworks/yolo-tools/main/install.sh | bash -s -- --all
+### One-liner install
+```bash
+# Install all tools (no interaction)
+curl -sSL https://raw.githubusercontent.com/thevibeworks/yolo-tools/main/install.sh | bash
+
+# With version
+curl -sSL https://raw.githubusercontent.com/thevibeworks/yolo-tools/main/install.sh | bash -s -- -v v1.0.0
 ```
 
 ## Tools
@@ -71,7 +78,3 @@ barkme.sh "Hello World"
   }
 }
 ```
-
-## License
-
-MIT

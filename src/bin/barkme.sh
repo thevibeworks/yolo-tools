@@ -2,6 +2,7 @@
 
 # barkme.sh - Send notifications via Bark service
 # Usage: barkme.sh [OPTIONS] <message>
+# Version: 1.0.0
 
 set -euo pipefail
 

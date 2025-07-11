@@ -202,12 +202,24 @@ for tool in "${TOOLS_TO_INSTALL[@]}"; do
         continue
     fi
 
-    if [[ -f "$TARGET_FILE" && "$FORCE" == "false" ]]; then
-        echo "Error: $TARGET_FILE already exists. Use --force to overwrite" >&2
-        continue
+    # Check for existing version
+    NEW_VERSION=$(grep "^# Version:" "$SRC_FILE" 2>/dev/null | cut -d' ' -f3 || echo "unknown")
+
+    if [[ -f "$TARGET_FILE" ]]; then
+        OLD_VERSION=$(grep "^# Version:" "$TARGET_FILE" 2>/dev/null | cut -d' ' -f3 || echo "unknown")
+
+        if [[ "$OLD_VERSION" == "$NEW_VERSION" && "$FORCE" == "false" ]]; then
+            echo "✓ $tool.sh $OLD_VERSION already installed (use --force to reinstall)"
+            continue
+        elif [[ "$OLD_VERSION" != "$NEW_VERSION" ]]; then
+            echo "⬆ Upgrading $tool.sh $OLD_VERSION -> $NEW_VERSION"
+        else
+            echo "↻ Reinstalling $tool.sh $NEW_VERSION"
+        fi
+    else
+        echo "⬇ Installing $tool.sh $NEW_VERSION"
     fi
 
-    echo "Installing $tool.sh -> $TARGET_FILE"
     cp "$SRC_FILE" "$TARGET_FILE"
     chmod +x "$TARGET_FILE"
 done

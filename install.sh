@@ -187,7 +187,7 @@ fi
 # Install selected tools
 for tool in "${TOOLS_TO_INSTALL[@]}"; do
     SRC_FILE="src/bin/$tool.sh"
-    TARGET_FILE="$INSTALL_DIR/$tool"
+    TARGET_FILE="$INSTALL_DIR/$tool.sh"
 
     if [[ ! -f "$SRC_FILE" ]]; then
         echo "Error: $SRC_FILE not found" >&2

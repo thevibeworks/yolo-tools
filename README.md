@@ -30,8 +30,8 @@ curl -sSL https://raw.githubusercontent.com/thevibeworks/yolo-tools/main/install
 export BARK_KEY="your_device_key"
 export BARK_SERVER="your_bark_server" # or use the official default: "https://api.day.app"
 
-# Send notification
-./scripts/barkme.sh "Hello World"
+# Send notification  
+barkme.sh "Hello World"
 ```
 
 ### Claude Code Hook Example
@@ -46,7 +46,7 @@ export BARK_SERVER="your_bark_server" # or use the official default: "https://ap
         "hooks": [
           {
             "type": "command",
-            "command": "barkme.sh -t \"Claude Code Notify\" -g \"Claude Code\" -l \"active\" -i\n  \"https://avatars.githubusercontent.com/in/1452392\" \"$(jq -r '.message')\""
+            "command": "barkme.sh -t \"Claude Code Notify\" -g \"Claude Code\" -l \"active\" -i \"https://avatars.githubusercontent.com/in/1452392\" \"$(jq -r '.message')\""
           }
         ]
       }
@@ -57,7 +57,7 @@ export BARK_SERVER="your_bark_server" # or use the official default: "https://ap
         "hooks": [
           {
             "type": "command",
-            "command": "barkme.sh -t \"Claude Code\" -g \"Claude Code\"  -i \"https://avatars.githubusercontent.com/in/1452392\" \"task stop\""
+            "command": "barkme.sh -t \"Claude Code\" -g \"Claude Code\" -i \"https://avatars.githubusercontent.com/in/1452392\" \"task stop\""
           }
         ]
       }

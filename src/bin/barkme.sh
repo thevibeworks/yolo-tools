@@ -101,11 +101,21 @@ urlencode() {
     echo "${encoded}"
 }
 
+get_time_ms() {
+    if command -v perl >/dev/null 2>&1; then
+        perl -MTime::HiRes -e 'printf "%.3f", Time::HiRes::time()'
+    elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        date +%s.%3N 2>/dev/null || date +%s
+    else
+        date +%s
+    fi
+}
+
 send_get() {
     local url="$BARK_SERVER/$BARK_KEY"
     local params=""
+    local start_time=$(get_time_ms)
 
-    # Build URL path
     if [[ -n "$TITLE" && -n "$SUBTITLE" ]]; then
         url+="/$(urlencode "$TITLE")/$(urlencode "$SUBTITLE")/$(urlencode "$BODY")"
     elif [[ -n "$TITLE" ]]; then
@@ -114,7 +124,6 @@ send_get() {
         url+="/$(urlencode "$BODY")"
     fi
 
-    # Add query parameters
     [[ -n "$SOUND" ]] && params+="&sound=$SOUND"
     [[ -n "$ICON" ]] && params+="&icon=$(urlencode "$ICON")"
     [[ -n "$GROUP" ]] && params+="&group=$(urlencode "$GROUP")"
@@ -132,24 +141,38 @@ send_get() {
     params="${params#&}"
     [[ -n "$params" ]] && url+="?$params"
 
-    # Send GET request with retry
     local attempt=1
     while [[ $attempt -le $RETRY_COUNT ]]; do
         if curl -s --max-time 10 "$url" >/dev/null 2>&1; then
-            [[ "$QUIET" == "false" ]] && echo "✓ Sent"
+            local end_time=$(get_time_ms)
+            local elapsed
+            if [[ "$start_time" == *"."* && "$end_time" == *"."* ]]; then
+                elapsed=$(awk "BEGIN {printf \"%.3f\", $end_time - $start_time}")
+            else
+                elapsed=$((end_time - start_time))
+            fi
+            [[ "$QUIET" == "false" ]] && echo "✓ Sent elapsed ${elapsed}s"
             return 0
         fi
         ((attempt++))
         [[ $attempt -le $RETRY_COUNT ]] && sleep 1
     done
 
-    [[ "$QUIET" == "false" ]] && echo "✗ Failed after $RETRY_COUNT attempts" >&2
+    local end_time=$(get_time_ms)
+    local elapsed
+    if [[ "$start_time" == *"."* && "$end_time" == *"."* ]]; then
+        elapsed=$(awk "BEGIN {printf \"%.3f\", $end_time - $start_time}")
+    else
+        elapsed=$((end_time - start_time))
+    fi
+    [[ "$QUIET" == "false" ]] && echo "✗ Failed after $RETRY_COUNT attempts elapsed ${elapsed}s" >&2
     return 1
 }
 
 send_post() {
     local json_data="{"
     json_data+='"body":"'"$(echo "$BODY" | sed 's/"/\\"/g')"'"'
+    local start_time=$(get_time_ms)
 
     [[ -n "$TITLE" ]] && json_data+=', "title":"'"$(echo "$TITLE" | sed 's/"/\\"/g')"'"'
     [[ -n "$SUBTITLE" ]] && json_data+=', "subtitle":"'"$(echo "$SUBTITLE" | sed 's/"/\\"/g')"'"'
@@ -188,11 +211,18 @@ send_post() {
             -d "$json_data" 2>/dev/null)
 
         if [[ $? -eq 0 ]]; then
+            local end_time=$(get_time_ms)
+            local elapsed
+            if [[ "$start_time" == *"."* && "$end_time" == *"."* ]]; then
+                elapsed=$(awk "BEGIN {printf \"%.3f\", $end_time - $start_time}")
+            else
+                elapsed=$((end_time - start_time))
+            fi
             if [[ "$QUIET" == "false" ]]; then
                 if echo "$response" | grep -q '"code":200'; then
-                    echo "✓ Delivered"
+                    echo "✓ Delivered elapsed ${elapsed}s"
                 else
-                    echo "⚠ Response: $response"
+                    echo "⚠ Response: $response elapsed ${elapsed}s"
                 fi
             fi
             return 0
@@ -201,7 +231,14 @@ send_post() {
         [[ $attempt -le $RETRY_COUNT ]] && sleep 1
     done
 
-    [[ "$QUIET" == "false" ]] && echo "✗ Failed after $RETRY_COUNT attempts" >&2
+    local end_time=$(get_time_ms)
+    local elapsed
+    if [[ "$start_time" == *"."* && "$end_time" == *"."* ]]; then
+        elapsed=$(awk "BEGIN {printf \"%.3f\", $end_time - $start_time}")
+    else
+        elapsed=$((end_time - start_time))
+    fi
+    [[ "$QUIET" == "false" ]] && echo "✗ Failed after $RETRY_COUNT attempts elapsed ${elapsed}s" >&2
     return 1
 }
 

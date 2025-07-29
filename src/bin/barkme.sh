@@ -2,7 +2,7 @@
 
 # barkme.sh - Send notifications via Bark service
 # Usage: barkme.sh [OPTIONS] <message>
-# Version: 1.0.0
+# Version: 1.1.0
 
 set -euo pipefail
 
@@ -30,6 +30,8 @@ VOLUME=""
 CIPHERTEXT=""
 ACTION=""
 DEVICE_KEYS=""
+ID=""
+DELETE=""
 QUIET=false
 USE_POST=false
 RETRY_COUNT="$BARK_RETRY"
@@ -62,6 +64,8 @@ ADDITIONAL OPTIONS:
     -e, --ciphertext <text> Encrypted message text
     -n, --no-popup          Don't show popup when tapped (action=none)
     -K, --keys <keys>       Comma-separated device keys for batch push
+    --id <id>               Notification ID (for update/delete operations)
+    --delete                Delete notification with specified ID
 
 CONTROL OPTIONS:
     -q, --quiet             Quiet mode (minimal output)
@@ -73,6 +77,8 @@ EXAMPLES:
     barkme.sh "Hello World"
     barkme.sh -t "Alert" -l critical "System down!"
     barkme.sh -t "Deploy" -g "CI/CD" -i "https://example.com/icon.png" "Build completed"
+    barkme.sh --id "deploy-123" -t "Updated" "Build completed successfully"
+    barkme.sh --id "deploy-123" --delete
     echo "Build completed" | barkme.sh -q
 
 ENVIRONMENT:
@@ -190,6 +196,8 @@ send_post() {
     [[ -n "$VOLUME" ]] && json_data+=', "volume":'"$VOLUME"
     [[ -n "$CIPHERTEXT" ]] && json_data+=', "ciphertext":"'"$(echo "$CIPHERTEXT" | sed 's/"/\\"/g')"'"'
     [[ -n "$ACTION" ]] && json_data+=', "action":"'"$ACTION"'"'
+    [[ -n "$ID" ]] && json_data+=', "id":"'"$ID"'"'
+    [[ -n "$DELETE" ]] && json_data+=', "delete":"1"'
 
     # Handle multiple device keys
     if [[ -n "$DEVICE_KEYS" ]]; then
@@ -244,7 +252,7 @@ send_post() {
 }
 
 send_notification() {
-    if [[ "$USE_POST" == "true" ]] || [[ -n "$CIPHERTEXT" ]] || [[ -n "$DEVICE_KEYS" ]]; then
+    if [[ "$USE_POST" == "true" ]] || [[ -n "$CIPHERTEXT" ]] || [[ -n "$DEVICE_KEYS" ]] || [[ -n "$ID" ]] || [[ -n "$DELETE" ]]; then
         send_post
     else
         send_get
@@ -336,6 +344,14 @@ while [[ $# -gt 0 ]]; do
         DEVICE_KEYS="$2"
         shift 2
         ;;
+    --id)
+        ID="$2"
+        shift 2
+        ;;
+    --delete)
+        DELETE="1"
+        shift
+        ;;
     -q | --quiet)
         QUIET=true
         shift
@@ -378,7 +394,12 @@ if [[ -z "$BARK_KEY" ]]; then
     exit 1
 fi
 
-if [[ -z "$BODY" ]]; then
+if [[ -n "$DELETE" ]] && [[ -z "$ID" ]]; then
+    [[ "$QUIET" == "false" ]] && echo "Error: --delete requires --id parameter" >&2
+    exit 1
+fi
+
+if [[ -z "$BODY" ]] && [[ -z "$DELETE" ]]; then
     [[ "$QUIET" == "false" ]] && echo "Error: Message body required" >&2
     exit 1
 fi

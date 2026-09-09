@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # yolo-tools installer
-# Installs barkme.sh to ~/.local/bin (default) or /usr/local/bin
+# Installs every tool in src/bin/ to ~/.local/bin (default) or /usr/local/bin
 
 set -euo pipefail
 
